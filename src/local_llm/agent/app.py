@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import re
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -82,6 +83,7 @@ async def v1_models():
 @app.post("/v1/chat/completions")
 async def v1_chat(request: Request):
     body = await request.json()
+    _dump_request(body)
     messages = _normalize_messages(body.get("messages", []))
     result = await state.loop.run(messages)
     content = _decorate(result)
@@ -234,12 +236,25 @@ async def on_error(_: Request, exc: Exception):
     )
 
 
+# Copilot Chat kullanıcı mesajını sarmalar: <context>…</context><attachments>…</attachments>
+# <reminderInstructions>…</reminderInstructions><userRequest>ASIL SORU</userRequest>
+_USER_REQUEST_RE = re.compile(r"<userRequest>\s*(.*?)\s*</userRequest>", re.S)
+_ATTACHMENTS_RE = re.compile(r"<attachments>\s*(.*?)\s*</attachments>", re.S)
+
+
 def _normalize_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """OpenAI content-parts formatını düz metne çevir; sadece role/content taşı."""
+    """OpenAI content-parts formatını düz metne çevir; sadece role/content taşı.
+
+    - İstemci system mesajları varsayılan olarak atılır (settings.keep_client_system):
+      Copilot'un agent-mode prompt'u binlerce token, 4B modelin tool seçimini bozuyor.
+    - Copilot sarmalı varsa sadece <userRequest> (+ varsa <attachments>) alınır.
+    """
     out: list[dict[str, Any]] = []
     for m in messages:
         role = m.get("role", "user")
         if role not in ("system", "user", "assistant"):
+            continue
+        if role == "system" and not settings.keep_client_system:
             continue
         content = m.get("content", "")
         if isinstance(content, list):
@@ -248,8 +263,33 @@ def _normalize_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 for p in content
                 if isinstance(p, dict) and p.get("type") == "text"
             )
-        out.append({"role": role, "content": content or ""})
+        content = content or ""
+        if role == "user":
+            content = _unwrap_copilot_user(content)
+        out.append({"role": role, "content": content})
     return out
+
+
+def _unwrap_copilot_user(content: str) -> str:
+    req = _USER_REQUEST_RE.search(content)
+    if not req:
+        return content
+    text = req.group(1)
+    att = _ATTACHMENTS_RE.search(content)
+    if att and att.group(1):
+        text = f"{text}\n\n[Ekli içerik]\n{att.group(1)}"
+    return text
+
+
+def _dump_request(body: dict[str, Any]) -> None:
+    """Son isteği dosyaya yaz (debug: istemci ne gönderiyor?)."""
+    path = settings.dump_last_request
+    if not path:
+        return
+    try:
+        path.write_text(json.dumps(body, ensure_ascii=False, indent=2), encoding="utf-8")
+    except OSError as e:  # debug kolaylığı; ajanı düşürmesin
+        log.warning("istek dökümü yazılamadı: %s", e)
 
 
 def _decorate(result: AgentResult) -> str:

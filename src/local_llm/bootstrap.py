@@ -157,7 +157,9 @@ def vscode_model_entry() -> dict[str, Any]:
     return {
         "name": "Local Agent (Ollama + MCP)",
         "url": f"http://{settings.agent_host}:{settings.agent_port}/v1",
-        "toolCalling": False,
+        # True: VS Code Agent/Editor modu toolCalling=False modelleri picker'dan gizler.
+        # Ajan gelen `tools` parametresini yok sayar; tool kararı içeride verilir.
+        "toolCalling": True,
         "vision": False,
         "thinking": False,
         "maxInputTokens": 32000,
@@ -209,7 +211,7 @@ def vscode_chat_models_entry() -> dict[str, Any]:
                 "id": settings.agent_model_name,
                 "name": m["name"],
                 "url": m["url"],
-                "toolCalling": False,
+                "toolCalling": m["toolCalling"],
                 "vision": False,
                 "maxInputTokens": m["maxInputTokens"],
                 "maxOutputTokens": m["maxOutputTokens"],
@@ -229,12 +231,18 @@ def _ensure_vscode_chat_models() -> str:
             data = raw if isinstance(raw, list) else []
         except json.JSONDecodeError:
             return f"atlandı: {path} geçerli JSON değil (elle düzeltin)"
+    wanted = vscode_chat_models_entry()["models"][0]
     for group in data:
         if group.get("name") == settings.agent_model_name:
-            ids = {m.get("id") for m in group.get("models", [])}
-            if settings.agent_model_name in ids:
-                return "zaten var"
-            group.setdefault("models", []).append(vscode_chat_models_entry()["models"][0])
+            models = group.setdefault("models", [])
+            for i, m in enumerate(models):
+                if m.get("id") == settings.agent_model_name:
+                    if m == wanted:
+                        return "zaten var"
+                    models[i] = wanted  # alan değişmiş (ör. toolCalling) → güncelle
+                    break
+            else:
+                models.append(wanted)
             break
     else:
         data.append(vscode_chat_models_entry())

@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     agent_port: int = 8000
     agent_model_name: str = "local-agent"  # VS Code'da görünen model adı
     max_tool_rounds: int = 5
+    # İstemcinin (VS Code Copilot vb.) gönderdiği system mesajlarını Ollama'ya geçir.
+    # Varsayılan False: Copilot'un agent-mode prompt'u binlerce token; 4B modeli boğar,
+    # tool seçimini bozar. Beyin bizim ajan, talimat bizim prompts.py.
+    keep_client_system: bool = False
+    # Her gelen /v1/chat/completions gövdesini bu dosyaya yaz (debug). Boş = kapalı.
+    dump_last_request: Path | None = PROJECT_ROOT / ".last_request.json"
 
     # MCP sunucuları: her biri "isim=komut arg1 arg2" formatında, ';' ile ayrılır.
     # Varsayılan: bizim MCP sunucumuz, aynı venv içindeki python ile.

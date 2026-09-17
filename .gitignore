@@ -23,3 +23,5 @@ build/
 .DS_Store
 Thumbs.db
 .notes.json
+.last_request.json
+.agent.log

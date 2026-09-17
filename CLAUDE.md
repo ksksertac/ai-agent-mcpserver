@@ -172,7 +172,7 @@ ollama serve / ollama list / ollama pull qwen3:4b
 ```json
 [{"name":"local-agent","vendor":"customendpoint","apiType":"chat-completions",
   "models":[{"id":"local-agent","name":"Local Agent (Ollama + MCP)","url":"http://127.0.0.1:8000/v1",
-             "toolCalling":false,"vision":false,"maxInputTokens":32000,"maxOutputTokens":4096}]}]
+             "toolCalling":true,"vision":false,"maxInputTokens":32000,"maxOutputTokens":4096}]}]
 ```
 `customOAIModels` ayarı (aşağıda) bu sürümde listede görünmedi; geriye dönük uyumluluk için duruyor.
 
@@ -184,7 +184,7 @@ ollama serve / ollama list / ollama pull qwen3:4b
     "local-agent": {
       "name": "Local Agent (Ollama + MCP)",
       "url": "http://localhost:8000/v1",
-      "toolCalling": false,
+      "toolCalling": true,
       "vision": false,
       "maxInputTokens": 32000,
       "maxOutputTokens": 4096
@@ -192,7 +192,13 @@ ollama serve / ollama list / ollama pull qwen3:4b
   }
 }
 ```
-Kullanım: Chat → model seçici → **Local Agent** seç → soru sor. Tool kararı ve MCP çağrısı ajanın içinde olur; VS Code tarafında Agent mode gerekmez (`toolCalling: false`).
+Kullanım: Chat → model seçici → **Local Agent** seç → soru sor. Tool kararı ve MCP çağrısı ajanın içinde olur.
+
+**`toolCalling: true` neden?** VS Code, Agent ve Editor modlarında `toolCalling: false` modelleri picker'dan gizler (`suitableForAgentMode` filtresi). `true` yazınca VS Code isteğe kendi tool listesini ve dev agent prompt'unu ekler; ajan bunları **yok sayar**: istemci `system` mesajları atılır (`KEEP_CLIENT_SYSTEM=false`), kullanıcı mesajından sadece `<userRequest>` (+ `<attachments>`) çekilir (`app.py:_normalize_messages`). Aksi hâlde 4B model Copilot prompt'unun altında tool seçemiyor ve uyduruyor (ölçüldü: 2 dk + halüsinasyon).
+
+**Model listede görünmüyorsa:** picker'da arama kutusuna `local` yaz ya da "Other Models ▾" satırını genişlet, sonra pin'le. Output → "GitHub Copilot Chat" logunda `BYOK: registered … customendpoint` ve `ConversationFeature: BYOK models available` satırları olmalı. Cevabın sağ altında `local-agent` yazmalı; `MAI-…`/`GPT-…` yazıyorsa Copilot'un kendi modeli cevaplamıştır (kredi harcar).
+
+**Debug:** her `/v1/chat/completions` gövdesi `.last_request.json`'a yazılır (`DUMP_LAST_REQUEST=` ile kapatılır). Arka planda başlatıldıysa log `.agent.log`.
 
 ## Otomatik Kurulum (Bootstrap) Prensibi
 

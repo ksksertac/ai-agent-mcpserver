@@ -113,3 +113,36 @@ async def test_bilinmeyen_tool_hata_metni():
     reg = MCPToolRegistry(specs=[])
     out = await reg.call("yok", {})
     assert out.startswith("HATA")
+
+
+# ---------------------------------------------------------------- istemci mesaj temizliği
+
+
+def test_normalize_drops_client_system_and_unwraps_copilot(monkeypatch):
+    from local_llm.agent.app import _normalize_messages
+    from local_llm.config import settings
+
+    monkeypatch.setattr(settings, "keep_client_system", False)
+    msgs = [
+        {"role": "system", "content": "You are Copilot. Use tools ..."},
+        {
+            "role": "user",
+            "content": (
+                "<context>ws</context><attachments>DOSYA</attachments>"
+                "<reminderInstructions>x</reminderInstructions>"
+                "<userRequest>bugünkü siparişler ne kadar tuttu?</userRequest>"
+            ),
+        },
+    ]
+    out = _normalize_messages(msgs)
+    assert [m["role"] for m in out] == ["user"]
+    assert out[0]["content"].startswith("bugünkü siparişler ne kadar tuttu?")
+    assert "DOSYA" in out[0]["content"]
+    assert "reminderInstructions" not in out[0]["content"]
+
+
+def test_normalize_plain_user_untouched():
+    from local_llm.agent.app import _normalize_messages
+
+    out = _normalize_messages([{"role": "user", "content": "saat kaç?"}])
+    assert out == [{"role": "user", "content": "saat kaç?"}]
