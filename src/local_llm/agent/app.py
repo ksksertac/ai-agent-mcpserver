@@ -17,7 +17,7 @@ from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 
 from local_llm import bootstrap
 from local_llm.agent.loop import AgentLoop, AgentResult
@@ -193,6 +193,25 @@ async def _ndjson_ollama(content: str, model: str | None):
 
 
 # ---------------------------------------------------------------- ortak
+
+
+@app.get("/", response_class=HTMLResponse)
+async def index():
+    tools = "".join(f"<li><code>{t['function']['name']}</code></li>" for t in state.registry.tools)
+    return f"""<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>Local Agent</title>
+<style>body{{font-family:system-ui;max-width:720px;margin:40px auto;padding:0 16px;line-height:1.5}}
+code{{background:#eee;padding:1px 5px;border-radius:3px}}</style></head><body>
+<h1>🤖 Local Agent çalışıyor</h1>
+<p>Model: <code>{settings.ollama_model}</code> · MCP tool sayısı:
+<b>{len(state.registry.tools)}</b></p>
+<p>VS Code → Copilot Chat → model seçici → <b>Local Agent (Ollama + MCP)</b> seçip soru sorun.</p>
+<ul>
+<li><a href="/health">/health</a> — durum</li>
+<li><a href="/v1/models">/v1/models</a> — VS Code'un gördüğü model</li>
+<li><a href="/docs">/docs</a> — API dokümanı</li>
+</ul>
+<h3>Tool'lar</h3><ul>{tools}</ul>
+</body></html>"""
 
 
 @app.get("/health")
