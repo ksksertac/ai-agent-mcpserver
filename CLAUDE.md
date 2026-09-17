@@ -168,6 +168,15 @@ ollama serve / ollama list / ollama pull qwen3:4b
 
 ## VS Code Entegrasyonu
 
+**Çalışan yol (VS Code 1.138):** Chat → model seçici → Manage/Language Models → **Add Models → Custom Endpoint → Chat Completions**. Kayıt `%APPDATA%/Code/User/chatLanguageModels.json` dosyasına düşer; bootstrap bunu otomatik yazar:
+```json
+[{"name":"local-agent","vendor":"customendpoint","apiType":"chat-completions",
+  "models":[{"id":"local-agent","name":"Local Agent (Ollama + MCP)","url":"http://127.0.0.1:8000/v1",
+             "toolCalling":false,"vision":false,"maxInputTokens":32000,"maxOutputTokens":4096}]}]
+```
+`customOAIModels` ayarı (aşağıda) bu sürümde listede görünmedi; geriye dönük uyumluluk için duruyor.
+
+
 `.vscode/settings.json`:
 ```json
 {
@@ -193,7 +202,7 @@ Kullanıcı hiçbir şeyi elle kurmamalı. `uv run local-agent` (veya `setup.ps1
 3. `OLLAMA_MODEL` indirilmemişse `/api/pull` ile indir.
 4. Modeli warm-up isteğiyle VRAM'e yükle.
 5. MCP sunucusunu subprocess olarak başlat, tool listesini çek.
-6. `.vscode/settings.json` yoksa/eksikse `customOAIModels` girdisini yaz.
+6. `.vscode/settings.json`'a `customOAIModels` yaz (eski yöntem) + `%APPDATA%/Code/User/chatLanguageModels.json`'a Custom Endpoint girdisi yaz (VS Code 1.138'de çalışan yöntem).
 7. Ajan HTTP sunucusunu :8000'de aç, "VS Code'da Local Agent'ı seçin" mesajı ver.
 
 Tüm adımlar idempotent. Bootstrap başarısız olsa bile ajan ayağa kalkar; hata chat cevabında açıklanır.

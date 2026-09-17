@@ -105,3 +105,25 @@ def test_vscode_settings_mevcut_ayarlari_korur(monkeypatch, tmp_path):
         and settings.agent_model_name in data[bootstrap.CUSTOM_OAI_KEY]
     )
     assert bootstrap._ensure_vscode_settings() == "zaten var"  # idempotent
+
+
+def test_chat_models_json_yazilir_ve_idempotent(monkeypatch, tmp_path):
+    target = tmp_path / "Code" / "User" / "chatLanguageModels.json"
+    monkeypatch.setattr(bootstrap, "vscode_chat_models_path", lambda: target)
+
+    assert bootstrap._ensure_vscode_chat_models().endswith("yazıldı")
+    data = json.loads(target.read_text(encoding="utf-8"))
+    assert data[0]["vendor"] == "customendpoint"
+    assert data[0]["models"][0]["id"] == settings.agent_model_name
+    assert data[0]["models"][0]["url"].endswith(":8000/v1")
+    assert bootstrap._ensure_vscode_chat_models() == "zaten var"
+
+
+def test_chat_models_json_bos_alanlari_doldurmaz_baska_girdiyi_korur(monkeypatch, tmp_path):
+    target = tmp_path / "chatLanguageModels.json"
+    target.write_text('[{"name": "baska", "vendor": "openai", "models": []}]', encoding="utf-8")
+    monkeypatch.setattr(bootstrap, "vscode_chat_models_path", lambda: target)
+
+    bootstrap._ensure_vscode_chat_models()
+    data = json.loads(target.read_text(encoding="utf-8"))
+    assert [g["name"] for g in data] == ["baska", settings.agent_model_name]

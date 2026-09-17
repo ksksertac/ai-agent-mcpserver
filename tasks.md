@@ -78,7 +78,8 @@ Hedef: `.\setup.ps1` veya `uv run local-agent` ile **hiçbir şey elle kurmadan*
 
 ## Faz 6 — VS Code Entegrasyonu
 - [x] `.vscode/settings.json`: `github.copilot.chat.customOAIModels` → `http://localhost:8000/v1`, `toolCalling: false`
-- [ ] Copilot Chat → model seçici → **Local Agent** görünüyor mu  ← **KULLANICI DOĞRULAYACAK** (ajan tarafı hazır, /v1/models + SSE test edildi)
+- [x] VS Code 1.138'de model ekleme yolu: Language Models → Add Models → **Custom Endpoint** → `chatLanguageModels.json` (kullanıcı profili). Bootstrap bu dosyayı otomatik yazıyor.
+- [ ] Copilot Chat → model seçici → **Local Agent** görünüyor mu  ← **KULLANICI DOĞRULAYACAK**
 - [ ] Chat'ten "saat kaç?" → ajan logunda `sistem_bilgisi` çağrısı, chat'te doğru cevap
 - [ ] Chat'ten alakasız soru → tool çağrılmadan cevap
 - [x] Yedek plan hazır: ajan Ollama-uyumlu `/api/chat` + `/api/tags` + `/api/version` + `/api/show` sunuyor; gerekirse VS Code Ollama sağlayıcısı `http://127.0.0.1:8000`'e yönlendirilir
@@ -102,6 +103,7 @@ Hedef: `.\setup.ps1` veya `uv run local-agent` ile **hiçbir şey elle kurmadan*
 - [ ] `.github/copilot-instructions.md` ile Copilot tarafına yönlendirme (mcp.json yolu kullanılırsa)
 
 ## Notlar / Kararlar
+- 2026-09-17: VS Code 1.138: `github.copilot.chat.customOAIModels` ayarı model listesinde GÖRÜNMEDİ. Çalışan yol: Language Models paneli → Add Models → Custom Endpoint → Chat Completions; kayıt `%APPDATA%/Code/User/chatLanguageModels.json` (vendor `customendpoint`). Bootstrap adım 6 bunu yazıyor.
 - 2026-09-17: Model `qwen3:4b` (tool-calling + Türkçe + VRAM). İsabet düşükse `qwen3:8b`.
 - 2026-09-17: Uzak repo: https://github.com/ksksertac/ai-agent-mcpserver
 - 2026-09-17: Tek komutla otomatik kurulum (bootstrap) istendi → Faz 5

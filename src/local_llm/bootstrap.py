@@ -5,7 +5,8 @@ Adımlar (hepsi idempotent, hata ajanı düşürmez):
 2. Ollama servisi ayakta mı → değilse `ollama serve` detached başlat, bekle
 3. Model indirilmiş mi → değilse pull
 4. Warm-up (VRAM'e yükle)
-5. .vscode/settings.json'a customOAIModels girdisi yaz
+5. .vscode/settings.json'a customOAIModels girdisi yaz (eski yöntem)
+6. VS Code profilindeki chatLanguageModels.json'a "Custom Endpoint" girdisi yaz (yeni yöntem)
 """
 
 from __future__ import annotations
@@ -36,6 +37,7 @@ async def ensure_ready(ollama: OllamaClient) -> dict[str, Any]:
         ("model_ready", lambda: _ensure_model(ollama)),
         ("warm_up", lambda: _warm_up(ollama)),
         ("vscode_settings", _ensure_vscode_settings),
+        ("vscode_models", _ensure_vscode_chat_models),
     )
     for name, step in steps:
         try:
@@ -178,3 +180,64 @@ def _ensure_vscode_settings() -> str:
     models[settings.agent_model_name] = vscode_model_entry()
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return f"{path.relative_to(PROJECT_ROOT)} yazıldı"
+
+
+# ------------------------------------------------ 6. VS Code chatLanguageModels.json
+
+
+def vscode_chat_models_path() -> Path | None:
+    """VS Code 1.10x+ 'Language Models → Add Models → Custom Endpoint' bu dosyaya yazar."""
+    if platform.system() == "Windows":
+        base = Path(os.environ.get("APPDATA", ""))
+    elif platform.system() == "Darwin":
+        base = Path.home() / "Library" / "Application Support"
+    else:
+        base = Path.home() / ".config"
+    if not base.exists():
+        return None
+    return base / "Code" / "User" / "chatLanguageModels.json"
+
+
+def vscode_chat_models_entry() -> dict[str, Any]:
+    m = vscode_model_entry()
+    return {
+        "name": settings.agent_model_name,
+        "vendor": "customendpoint",
+        "apiType": "chat-completions",
+        "models": [
+            {
+                "id": settings.agent_model_name,
+                "name": m["name"],
+                "url": m["url"],
+                "toolCalling": False,
+                "vision": False,
+                "maxInputTokens": m["maxInputTokens"],
+                "maxOutputTokens": m["maxOutputTokens"],
+            }
+        ],
+    }
+
+
+def _ensure_vscode_chat_models() -> str:
+    path = vscode_chat_models_path()
+    if path is None:
+        return "atlandı: VS Code kullanıcı klasörü yok"
+    data: list[dict[str, Any]] = []
+    if path.exists():
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8") or "[]")
+            data = raw if isinstance(raw, list) else []
+        except json.JSONDecodeError:
+            return f"atlandı: {path} geçerli JSON değil (elle düzeltin)"
+    for group in data:
+        if group.get("name") == settings.agent_model_name:
+            ids = {m.get("id") for m in group.get("models", [])}
+            if settings.agent_model_name in ids:
+                return "zaten var"
+            group.setdefault("models", []).append(vscode_chat_models_entry()["models"][0])
+            break
+    else:
+        data.append(vscode_chat_models_entry())
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=4) + "\n", encoding="utf-8")
+    return f"{path} yazıldı"
