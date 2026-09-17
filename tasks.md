@@ -13,24 +13,24 @@ Her faz sonunda commit at ve `origin main`'e push et (repo: https://github.com/k
 - [x] Mimari kararı: bizim ajan MCP client olacak, VS Code sadece arayüz (2026-09-17)
 
 ## Faz 1 — Proje İskeleti
-- [ ] `uv init` ile `pyproject.toml` (`name = local-llm`, `requires-python >= 3.12`)
-- [ ] Bağımlılıklar: `mcp[cli]`, `httpx`, `fastapi`, `uvicorn`, `pydantic`, `pydantic-settings`
-- [ ] Dev bağımlılıklar: `pytest`, `pytest-asyncio`, `respx`, `ruff`
-- [ ] Paket yapısı: `src/local_llm/{config.py, bootstrap.py, ollama_client.py, agent/, mcp_server/}`
-- [ ] Entry point'ler: `local-agent = local_llm.agent.app:main`, `local-mcp = local_llm.mcp_server.server:main`
-- [ ] `config.py`: `OLLAMA_HOST`, `OLLAMA_MODEL=qwen3:4b`, `OLLAMA_TIMEOUT=120`, `AGENT_PORT=8000`, `MAX_TOOL_ROUNDS=5`, `MCP_SERVERS` (komut listesi)
-- [ ] Python 3.14 ile `uv sync` sorunsuz mu; değilse 3.12'ye geç
-- [ ] `logging` ayarı: MCP server stderr'e, ajan normal
+- [x] `uv init` ile `pyproject.toml` (`name = local-llm`, `requires-python >= 3.12`)
+- [x] Bağımlılıklar: `mcp[cli]`, `httpx`, `fastapi`, `uvicorn`, `pydantic`, `pydantic-settings`
+- [x] Dev bağımlılıklar: `pytest`, `pytest-asyncio`, `respx`, `ruff`
+- [x] Paket yapısı: `src/local_llm/{config.py, bootstrap.py, ollama_client.py, agent/, mcp_server/}`
+- [x] Entry point'ler: `local-agent = local_llm.agent.app:main`, `local-mcp = local_llm.mcp_server.server:main`
+- [x] `config.py`: `OLLAMA_HOST`, `OLLAMA_MODEL=qwen3:4b`, `OLLAMA_TIMEOUT=120`, `AGENT_PORT=8000`, `MAX_TOOL_ROUNDS=5`, `MCP_SERVERS` (komut listesi)
+- [x] Python 3.14 ile `uv sync` sorunsuz mu; değilse 3.12'ye geç → uv otomatik 3.12.14 seçti, mcp 2.2.0 (FastMCP → MCPServer)
+- [x] `logging` ayarı: MCP server stderr'e, ajan normal
 
 ## Faz 2 — MCP Server (eller)
-- [ ] `mcp_server/server.py`: `FastMCP("local-tools")`, `main()` → `mcp.run(transport="stdio")`
-- [ ] Tool `sistem_bilgisi()` — saat, tarih, OS, RAM/CPU/disk
-- [ ] Tool `dosya_ara(desen, klasor=".")` — workspace'te glob arama
-- [ ] Tool `dosya_oku(yol)` — dosya içeriği (boyut sınırı ile)
-- [ ] Tool `not_kaydet(metin)` / `notlari_getir()` — JSON dosyasına basit not
-- [ ] Her tool docstring'i "NE ZAMAN KULLAN / NE ZAMAN KULLANMA" formatında (Ollama kararını buradan veriyor)
-- [ ] `tests/test_mcp_server.py` — tool fonksiyonları doğrudan test
-- [ ] MCP Inspector ile elle doğrula: `npx @modelcontextprotocol/inspector uv run local-mcp`
+- [x] `mcp_server/server.py`: `FastMCP("local-tools")`, `main()` → `mcp.run(transport="stdio")`
+- [x] Tool `sistem_bilgisi()` — saat, tarih, OS, RAM/CPU/disk
+- [x] Tool `dosya_ara(desen, klasor=".")` — workspace'te glob arama
+- [x] Tool `dosya_oku(yol)` — dosya içeriği (boyut sınırı ile)
+- [x] Tool `not_kaydet(metin)` / `notlari_getir()` — JSON dosyasına basit not
+- [x] Her tool docstring'i "NE ZAMAN KULLAN / NE ZAMAN KULLANMA" formatında (Ollama kararını buradan veriyor)
+- [x] `tests/test_mcp_server.py` — tool fonksiyonları doğrudan test
+- [x] MCP protokolü doğrulandı: test içinde stdio_client ile gerçek subprocess (Inspector yerine)
 - [ ] **AÇIK KARAR:** tool'ların asıl konusu belirlenince demo tool'lar değişecek
 
 ## Faz 3 — Ollama İstemcisi
