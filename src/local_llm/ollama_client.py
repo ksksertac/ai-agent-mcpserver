@@ -54,7 +54,9 @@ def strip_think(text: str) -> str:
 
 
 class OllamaClient:
-    def __init__(self, host: str | None = None, model: str | None = None, timeout: float | None = None):
+    def __init__(
+        self, host: str | None = None, model: str | None = None, timeout: float | None = None
+    ):
         self.host = (host or settings.ollama_host).rstrip("/")
         self.model = model or settings.ollama_model
         self.timeout = timeout or settings.ollama_timeout
@@ -90,7 +92,9 @@ class OllamaClient:
         model = model or self.model
         log.info("Model indiriliyor: %s", model)
         last = ""
-        async with self._client.stream("POST", "/api/pull", json={"model": model}, timeout=None) as r:
+        async with self._client.stream(
+            "POST", "/api/pull", json={"model": model}, timeout=None
+        ) as r:
             r.raise_for_status()
             async for line in r.aiter_lines():
                 if not line:
@@ -110,7 +114,9 @@ class OllamaClient:
     async def warm_up(self, model: str | None = None) -> None:
         """Modeli VRAM'e yükler ki ilk soru beklemesin."""
         await self._request(
-            "POST", "/api/chat", json={"model": model or self.model, "messages": [], "keep_alive": "30m"}
+            "POST",
+            "/api/chat",
+            json={"model": model or self.model, "messages": [], "keep_alive": "30m"},
         )
 
     # ---- sohbet --------------------------------------------------------------
@@ -140,10 +146,14 @@ class OllamaClient:
         r = await self._request("POST", "/api/chat", json=payload)
         msg = r.json().get("message", {})
         calls = [
-            ToolCall(name=tc["function"]["name"], arguments=_parse_args(tc["function"].get("arguments")))
+            ToolCall(
+                name=tc["function"]["name"], arguments=_parse_args(tc["function"].get("arguments"))
+            )
             for tc in msg.get("tool_calls", []) or []
         ]
-        return ChatResponse(content=strip_think(msg.get("content", "") or ""), tool_calls=calls, raw_message=msg)
+        return ChatResponse(
+            content=strip_think(msg.get("content", "") or ""), tool_calls=calls, raw_message=msg
+        )
 
     # ---- iç -----------------------------------------------------------------
 
@@ -151,11 +161,17 @@ class OllamaClient:
         try:
             r = await self._client.request(method, url, **kw)
         except httpx.ConnectError as e:
-            raise OllamaError(f"Ollama'ya bağlanılamadı ({self.host}). `ollama serve` çalışıyor mu?") from e
+            raise OllamaError(
+                f"Ollama'ya bağlanılamadı ({self.host}). `ollama serve` çalışıyor mu?"
+            ) from e
         except httpx.TimeoutException as e:
-            raise OllamaError(f"Ollama zaman aşımı ({self.timeout}s). Model ilk yüklemede yavaş olabilir.") from e
+            raise OllamaError(
+                f"Ollama zaman aşımı ({self.timeout}s). Model ilk yüklemede yavaş olabilir."
+            ) from e
         if r.status_code == 404 and "model" in r.text.lower():
-            raise OllamaError(f"Model bulunamadı: `ollama pull {self.model}` çalıştırın. ({r.text.strip()})")
+            raise OllamaError(
+                f"Model bulunamadı: `ollama pull {self.model}` çalıştırın. ({r.text.strip()})"
+            )
         if r.status_code >= 400:
             raise OllamaError(f"Ollama hatası {r.status_code}: {r.text.strip()[:300]}")
         return r

@@ -57,11 +57,12 @@ async def test_tool_listesi_kayitli():
 
 async def test_stdio_uzerinden_mcp_protokolu():
     """Gerçek MCP: sunucuyu subprocess olarak başlat, tools/list ve tools/call yap."""
-    params = StdioServerParameters(command=sys.executable, args=["-m", "local_llm.mcp_server.server"])
-    async with stdio_client(params) as (r, w):
-        async with ClientSession(r, w) as session:
-            await session.initialize()
-            tools = await session.list_tools()
-            assert {t.name for t in tools.tools} == EXPECTED_TOOLS
-            res = await session.call_tool("dosya_ara", {"desen": "pyproject.toml"})
-            assert "pyproject.toml" in res.content[0].text
+    params = StdioServerParameters(
+        command=sys.executable, args=["-m", "local_llm.mcp_server.server"]
+    )
+    async with stdio_client(params) as (r, w), ClientSession(r, w) as session:
+        await session.initialize()
+        tools = await session.list_tools()
+        assert {t.name for t in tools.tools} == EXPECTED_TOOLS
+        res = await session.call_tool("dosya_ara", {"desen": "pyproject.toml"})
+        assert "pyproject.toml" in res.content[0].text

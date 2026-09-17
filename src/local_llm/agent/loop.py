@@ -1,9 +1,9 @@
 """Ajan döngüsü — beyin (Ollama) ile eller (MCP) arasındaki turları yönetir.
 
-    messages + tools → Ollama
-        ├─ düz cevap → bitti
-        └─ tool_calls → her birini MCP'de çalıştır → role:tool mesajı ekle → tekrar Ollama
-    (MAX_TOOL_ROUNDS ile sınırlı)
+messages + tools → Ollama
+    ├─ düz cevap → bitti
+    └─ tool_calls → her birini MCP'de çalıştır → role:tool mesajı ekle → tekrar Ollama
+(MAX_TOOL_ROUNDS ile sınırlı)
 """
 
 from __future__ import annotations
@@ -36,7 +36,9 @@ class AgentResult:
 
 
 class AgentLoop:
-    def __init__(self, ollama: OllamaClient, registry: MCPToolRegistry, max_rounds: int | None = None):
+    def __init__(
+        self, ollama: OllamaClient, registry: MCPToolRegistry, max_rounds: int | None = None
+    ):
         self.ollama = ollama
         self.registry = registry
         self.max_rounds = max_rounds or settings.max_tool_rounds
@@ -61,7 +63,9 @@ class AgentLoop:
             convo.append(resp.raw_message or {"role": "assistant", "content": "", "tool_calls": []})
 
             for call in resp.tool_calls:
-                log.info("Tur %d: %s(%s)", rnd, call.name, json.dumps(call.arguments, ensure_ascii=False))
+                log.info(
+                    "Tur %d: %s(%s)", rnd, call.name, json.dumps(call.arguments, ensure_ascii=False)
+                )
                 result = await self.registry.call(call.name, call.arguments)
                 traces.append(ToolTrace(call.name, call.arguments, result))
                 convo.append({"role": "tool", "tool_name": call.name, "content": result})
@@ -73,7 +77,9 @@ class AgentLoop:
             content = resp.content or last_content
         except OllamaError as e:
             content = f"⚠️ {e}"
-        return AgentResult(content=content or "(cevap üretilemedi)", traces=traces, rounds=self.max_rounds)
+        return AgentResult(
+            content=content or "(cevap üretilemedi)", traces=traces, rounds=self.max_rounds
+        )
 
 
 def _with_system_prompt(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:

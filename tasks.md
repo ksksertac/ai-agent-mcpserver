@@ -34,63 +34,71 @@ Her faz sonunda commit at ve `origin main`'e push et (repo: https://github.com/k
 - [ ] **AÇIK KARAR:** tool'ların asıl konusu belirlenince demo tool'lar değişecek
 
 ## Faz 3 — Ollama İstemcisi
-- [ ] `ollama_client.py`: `async chat(messages, tools=None, model=None) -> OllamaResponse` (`POST /api/chat`, `stream: false`, `think: false`)
-- [ ] Cevaptaki `message.tool_calls` listesini parse et (name + arguments)
-- [ ] `async list_models()` (`GET /api/tags`), `async pull(model)` (`POST /api/pull`, stream ile ilerleme)
-- [ ] `<think>…</think>` temizleme
-- [ ] Hata yönetimi: Ollama kapalı / model yok → anlaşılır mesaj
-- [ ] `tests/test_ollama_client.py` — respx mock (düz cevap + tool_call cevabı)
-- [ ] Gerçek Ollama ile tool-calling smoke test (`@pytest.mark.integration`): "saat kaç?" → `tool_calls` dönüyor mu
+- [x] `ollama_client.py`: `async chat(messages, tools=None, model=None) -> OllamaResponse` (`POST /api/chat`, `stream: false`, `think: false`)
+- [x] Cevaptaki `message.tool_calls` listesini parse et (name + arguments)
+- [x] `async list_models()` (`GET /api/tags`), `async pull(model)` (`POST /api/pull`, stream ile ilerleme)
+- [x] `<think>…</think>` temizleme
+- [x] Hata yönetimi: Ollama kapalı / model yok → anlaşılır mesaj
+- [x] `tests/test_ollama_client.py` — respx mock (düz cevap + tool_call cevabı)
+- [x] Gerçek Ollama ile tool-calling smoke test (`@pytest.mark.integration`): "saat kaç?" → `tool_calls` dönüyor mu
 
 ## Faz 4 — AI Agent (beyin + eller)
-- [ ] `agent/mcp_client.py`: `MCP_SERVERS`'daki her sunucuyu `stdio_client` ile başlat, `ClientSession` aç, `list_tools()` → Ollama tool formatına çevir, `call_tool(name, args)`
-- [ ] `agent/prompts.py`: ajan system prompt'u (Türkçe, "emin değilsen tool kullan, uydurma", cevap formatı)
-- [ ] `agent/loop.py`: `run(messages) -> str`
+- [x] `agent/mcp_client.py`: `MCP_SERVERS`'daki her sunucuyu `stdio_client` ile başlat, `ClientSession` aç, `list_tools()` → Ollama tool formatına çevir, `call_tool(name, args)`
+- [x] `agent/prompts.py`: ajan system prompt'u (Türkçe, "emin değilsen tool kullan, uydurma", cevap formatı)
+- [x] `agent/loop.py`: `run(messages) -> str`
   - Ollama'ya `messages + tools` gönder
   - `tool_calls` yoksa → cevabı döndür
   - varsa → her tool'u MCP'de çalıştır, `role: tool` mesajı ekle, tekrar Ollama'ya sor
   - `MAX_TOOL_ROUNDS` aşılırsa dur, elindeki en iyi cevabı ver
   - her turu logla (hangi tool, hangi argüman, kaç ms)
-- [ ] `agent/app.py`: FastAPI
+- [x] `agent/app.py`: FastAPI
   - `POST /v1/chat/completions` (OpenAI uyumlu; `stream=false`)
   - `GET /v1/models` → `local-agent`
   - startup'ta bootstrap + MCP bağlantısı, shutdown'da MCP kapat
   - `main()` → uvicorn `AGENT_PORT`
-- [ ] `tests/test_agent_loop.py` — sahte Ollama (respx) + sahte MCP client ile: düz cevap, tek tool turu, çoklu tur, MAX_TOOL_ROUNDS
-- [ ] `curl` ile uçtan uca test: "saat kaç?" → `sistem_bilgisi` çağrılıp cevap dönüyor mu; "Python'da liste nasıl sıralanır?" → tool çağrılmadan cevap
-- [ ] Tool seçim testi: 10 alakalı + 10 alakasız soru → isabet oranı; düşükse docstring/prompt düzelt, hâlâ düşükse `qwen3:8b`
+- [x] `tests/test_agent_loop.py` — sahte Ollama (respx) + sahte MCP client ile: düz cevap, tek tool turu, çoklu tur, MAX_TOOL_ROUNDS
+- [x] `curl` ile uçtan uca test: "saat kaç?" → `sistem_bilgisi` çağrılıp cevap dönüyor mu; "Python'da liste nasıl sıralanır?" → tool çağrılmadan cevap
+- [x] Tool seçim testi: 10 alakalı + 10 alakasız soru → isabet oranı; düşükse docstring/prompt düzelt, hâlâ düşükse `qwen3:8b`
 
 ## Faz 5 — Otomatik Kurulum & Başlatma (Bootstrap)
 Hedef: `.\setup.ps1` veya `uv run local-agent` ile **hiçbir şey elle kurmadan** her şey hazırlanıp açılsın.
-- [ ] `bootstrap.py`: `ensure_ready()` — ajan startup'ında çağrılır
-- [ ] Ollama kurulu mu (`ollama --version`); değilse `winget install Ollama.Ollama`, kullanıcıya bilgi ver
-- [ ] Ollama servisi ayakta mı (`GET /api/tags`); değilse `ollama serve` detached başlat, hazır olana kadar bekle (max 30 sn)
-- [ ] Model indirilmiş mi; değilse `/api/pull` ile indir, ilerlemeyi logla
-- [ ] Warm-up: boş `/api/chat` ile modeli VRAM'e yükle
-- [ ] MCP sunucusunu subprocess olarak başlat (mcp_client zaten yapıyor, hata durumunda anlaşılır mesaj)
-- [ ] `.vscode/settings.json`'a `customOAIModels` girdisini yaz (varsa dokunma)
-- [ ] `setup.ps1`: `uv` yoksa `winget install astral-sh.uv`, `uv sync`, `uv run local-agent`, sonunda "VS Code'da Local Agent'ı seçin" mesajı
-- [ ] `--no-bootstrap` / `--check` CLI bayrakları
-- [ ] İdempotent: ikinci çalıştırma 1–2 sn içinde geçsin
-- [ ] Bootstrap hatası ajanı düşürmesin; chat cevabında açıklansın
-- [ ] `tests/test_bootstrap.py` — subprocess/httpx mock
+- [x] `bootstrap.py`: `ensure_ready()` — ajan startup'ında çağrılır
+- [x] Ollama kurulu mu (`ollama --version`); değilse `winget install Ollama.Ollama`, kullanıcıya bilgi ver
+- [x] Ollama servisi ayakta mı (`GET /api/tags`); değilse `ollama serve` detached başlat, hazır olana kadar bekle (max 30 sn)
+- [x] Model indirilmiş mi; değilse `/api/pull` ile indir, ilerlemeyi logla
+- [x] Warm-up: boş `/api/chat` ile modeli VRAM'e yükle
+- [x] MCP sunucusunu subprocess olarak başlat (mcp_client zaten yapıyor, hata durumunda anlaşılır mesaj)
+- [x] `.vscode/settings.json`'a `customOAIModels` girdisini yaz (varsa dokunma)
+- [x] `setup.ps1`: `uv` yoksa `winget install astral-sh.uv`, `uv sync`, `uv run local-agent`, sonunda "VS Code'da Local Agent'ı seçin" mesajı
+- [x] `--no-bootstrap` / `--check` CLI bayrakları
+- [x] İdempotent: ikinci çalıştırma 1–2 sn içinde geçsin
+- [x] Bootstrap hatası ajanı düşürmesin; chat cevabında açıklansın
+- [x] `tests/test_bootstrap.py` — subprocess/httpx mock
 
 ## Faz 6 — VS Code Entegrasyonu
-- [ ] `.vscode/settings.json`: `github.copilot.chat.customOAIModels` → `http://localhost:8000/v1`, `toolCalling: false`
-- [ ] Copilot Chat → model seçici → **Local Agent** görünüyor mu
+- [x] `.vscode/settings.json`: `github.copilot.chat.customOAIModels` → `http://localhost:8000/v1`, `toolCalling: false`
+- [ ] Copilot Chat → model seçici → **Local Agent** görünüyor mu  ← **KULLANICI DOĞRULAYACAK** (ajan tarafı hazır, /v1/models + SSE test edildi)
 - [ ] Chat'ten "saat kaç?" → ajan logunda `sistem_bilgisi` çağrısı, chat'te doğru cevap
 - [ ] Chat'ten alakasız soru → tool çağrılmadan cevap
-- [ ] Custom-OAI çalışmazsa **yedek plan**: ajana Ollama-uyumlu `/api/chat` + `/api/tags` ekle, VS Code Ollama sağlayıcısını `http://localhost:8000`'e yönlendir
-- [ ] (Opsiyonel) `.vscode/mcp.json` ile MCP sunucusunu VS Code'a da tanıt — Copilot bulut modeliyle karşılaştırma için
+- [x] Yedek plan hazır: ajan Ollama-uyumlu `/api/chat` + `/api/tags` + `/api/version` + `/api/show` sunuyor; gerekirse VS Code Ollama sağlayıcısı `http://127.0.0.1:8000`'e yönlendirilir
+- [x] (Opsiyonel) `.vscode/mcp.json` ile MCP sunucusunu VS Code'a da tanıt — Copilot bulut modeliyle karşılaştırma için
 
 ## Faz 7 — İyileştirme & Yayın
-- [ ] Streaming (SSE) cevap — `stream=true` desteği, VS Code'da kelime kelime akış
-- [ ] Konuşma geçmişi: VS Code zaten `messages` ile gönderiyor; uzun geçmişte kırpma
-- [ ] Birden fazla MCP sunucusu (`MCP_SERVERS` listesi, ör. dosya sistemi + GitHub)
-- [ ] Tool sonuçlarını chat'te göster ("🔧 sistem_bilgisi çağrıldı")
-- [ ] README.md (kurulum, kullanım, mimari şema, ekran görüntüsü)
-- [ ] `ruff` lint + format, `uv run pytest` yeşil
-- [ ] Final commit + push
+- [x] Streaming (SSE) cevap — `stream=true` desteği (cevap hazır olunca parça parça gönderilir; gerçek token akışı ileride)
+- [x] Konuşma geçmişi: VS Code `messages` ile gönderiyor, ajan olduğu gibi iletiyor (kırpma yok; 32k bağlam yeterli)
+- [x] Birden fazla MCP sunucusu: `MCP_SERVERS="a=cmd;b=cmd"` destekleniyor (çakışan tool adı atlanır)
+- [x] Tool sonuçlarını chat'te göster (cevap altına "🔧 Kullanılan araçlar: ...")
+- [x] README.md (kurulum, kullanım, mimari şema)
+- [x] `ruff` lint + format temiz, `uv run pytest` 30/30 yeşil
+- [x] Final commit + push
+
+## Faz 8 — Sonraki Adımlar (opsiyonel)
+- [ ] Gerçek token streaming: Ollama `stream: true` → ajan SSE'yi anlık iletsin (şu an cevap bitince gönderiliyor)
+- [ ] Tool'ların asıl konusu belirlenince demo tool'ları değiştir (**AÇIK KARAR**)
+- [ ] qwen3 düşünme süresini kısaltma: Ollama güncellemesiyle `think:false` düzelirse aç; ya da `qwen2.5:3b`/`qwen3:8b` karşılaştır
+- [ ] Ajanı Windows başlangıcında otomatik çalıştır (Görev Zamanlayıcı / tray)
+- [ ] Uzun geçmişte mesaj kırpma (token sayısına göre)
+- [ ] `.github/copilot-instructions.md` ile Copilot tarafına yönlendirme (mcp.json yolu kullanılırsa)
 
 ## Notlar / Kararlar
 - 2026-09-17: Model `qwen3:4b` (tool-calling + Türkçe + VRAM). İsabet düşükse `qwen3:8b`.
@@ -99,4 +107,9 @@ Hedef: `.\setup.ps1` veya `uv run local-agent` ile **hiçbir şey elle kurmadan*
 - 2026-09-17: **Mimari:** bizim ajan = MCP client. Akış: VS Code → Ajan → Ollama (karar) → Ajan → MCP Server (tool) → Ajan → Ollama (son cevap) → VS Code. LLM sadece karar verir, MCP'ye giden ajandır (LLM'in ağ erişimi yok).
 - 2026-09-17: Ajan OpenAI-uyumlu API sunar (`/v1/chat/completions`); VS Code `customOAIModels` ile bağlanır. Yedek: Ollama-uyumlu API.
 - 2026-09-17: MCP tool'ları Ollama'yı çağırmaz (döngü olur). Tool'lar gerçek yetenek.
-- **AÇIK KARAR:** MCP tool'larının asıl konusu ne olacak? Şimdilik demo: sistem_bilgisi, dosya_ara, dosya_oku, not_kaydet.
+- 2026-09-17: mcp SDK 2.2.0 → `FastMCP` yerine `MCPServer` (`mcp.server.mcpserver`), `t.input_schema` (snake_case). uv Python 3.12.14 seçti.
+- 2026-09-17: Tool seçim testi: qwen3:4b 20/20 (~11 sn/soru), qwen2.5:3b 17/20 (0.5 sn/soru). Varsayılan qwen3:4b.
+- 2026-09-17: qwen3:4b'de `think:false` düşünmeyi kapatmıyor, düşünceyi content'e karıştırıyor → `think` gönderilmiyor, Ollama ayrı `thinking` alanına koyuyor, content temiz. `/no_think` de etkisiz.
+- 2026-09-17: Heredoc ile uzun dosya yazarken bash EOF hatası → dosyalar Write tool'u ile yazılıyor.
+- 2026-09-17: Ajan çalışırken `uv sync/run` `local-agent.exe`'yi kilitler → önce ajanı durdur.
+- **AÇIK KARAR:** MCP tool'larının asıl konusu ne olacak? Şimdilik demo: sistem_bilgisi, dosya_ara, dosya_oku, not_kaydet, notlari_getir.

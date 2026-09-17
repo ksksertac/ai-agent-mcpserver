@@ -41,3 +41,7 @@ markers = ["integration: gerçek Ollama gerektiren testler"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003", "RUF012", "RUF059"]  # Türkçe karakter/emoji ve bilinçli mutable default

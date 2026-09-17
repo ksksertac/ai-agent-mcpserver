@@ -52,7 +52,9 @@ async def run_model(model: str, tools: list[dict]) -> None:
         ok += hit
         print(f"  {'✓' if hit else '✗'} {q:<40} beklenen={expected!s:<15} gelen={got}")
     dt = time.perf_counter() - t0
-    print(f"  → {ok}/{len(CASES)} isabet (%{ok * 100 // len(CASES)}), {dt / len(CASES):.1f} sn/soru")
+    print(
+        f"  → {ok}/{len(CASES)} isabet (%{ok * 100 // len(CASES)}), {dt / len(CASES):.1f} sn/soru"
+    )
     await ollama.aclose()
 
 

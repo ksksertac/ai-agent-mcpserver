@@ -9,8 +9,9 @@ VS Code Chat'ten gelen soruyu **arkada çalışan kendi ajanımız** karşılar.
 | Bileşen | Durum |
 |---|---|
 | OS | Windows 11 Pro, PowerShell |
-| Python | 3.14.3 |
-| Paket yöneticisi | `uv` 0.12.15 (venv + bağımlılık için bunu kullan) |
+| Python | 3.14.3 sistemde; **uv venv 3.12.14 kullanıyor** (`requires-python >= 3.12`) |
+| Paket yöneticisi | `uv` 0.12.15 — `uv sync`, `uv run …` |
+| mcp SDK | **2.2.0** — `from mcp.server.mcpserver import MCPServer` (FastMCP yok), client: `ClientSession` + `stdio_client`, tool şeması `t.input_schema` |
 | Ollama | 0.34.0 kurulu, `http://localhost:11434` |
 | İndirilmiş modeller | `qwen3:4b` (tool-calling destekler, **varsayılan**), `qwen2.5:3b`, `qwen2.5vl:3b` |
 | GPU | RTX 4060 Laptop 8 GB VRAM → 4B–8B q4 modeller rahat çalışır |
@@ -67,7 +68,7 @@ def siparis_getir(tarih: str) -> str:
 | Ollama | Sadece beyin. Metin veya `tool_calls` üretir; ağa çıkamaz. |
 | **MCP Server** (bizim) | Eller. Tool'ları çalıştırır, sonucu döner. Ollama'yı ÇAĞIRMAZ. |
 
-## Proje Yapısı (hedef)
+## Proje Yapısı (mevcut)
 
 ```
 mcpserver/
@@ -76,10 +77,12 @@ mcpserver/
 ├── pyproject.toml             # uv; entry point'ler: local-agent, local-mcp
 ├── setup.ps1                  # tek komut: uv → uv sync → bootstrap → ajanı başlat
 ├── .vscode/
-│   ├── mcp.json               # (opsiyonel) MCP sunucusunu VS Code'a da tanıtmak için
-│   └── settings.json          # github.copilot.chat.customOAIModels → http://localhost:8000/v1
+│   ├── mcp.json               # (opsiyonel) MCP sunucusunu Copilot'un kendi modeline de tanıtır
+│   └── settings.json          # github.copilot.chat.customOAIModels → http://127.0.0.1:8000/v1 (bootstrap yazar)
+├── scripts/tool_secim_testi.py # model karşılaştırma: 10 alakalı + 10 alakasız soru
 ├── src/local_llm/
 │   ├── __init__.py
+│   ├── logging_setup.py       # stderr logger
 │   ├── config.py              # OLLAMA_HOST, OLLAMA_MODEL, AGENT_PORT, MAX_TOOL_ROUNDS, MCP_SERVERS
 │   ├── bootstrap.py           # ensure_ready(): Ollama kur/başlat, model çek, ısıt, MCP server başlat
 │   ├── ollama_client.py       # httpx: /api/chat (tools ile), /api/tags, /api/pull
@@ -105,11 +108,12 @@ mcpserver/
 
 ## Teknoloji Kararları
 
-- **Ajan API'si:** OpenAI-uyumlu `/v1/chat/completions` (FastAPI + uvicorn). VS Code Copilot Chat `customOAIModels` ile bağlanır; ileride Open WebUI, Continue vb. her istemci de bağlanabilir. Streaming (SSE) ilk sürümde yok, Faz 6.
+- **Ajan API'si:** OpenAI-uyumlu `/v1/chat/completions` (FastAPI + uvicorn). VS Code Copilot Chat `customOAIModels` ile bağlanır; ileride Open WebUI, Continue vb. her istemci de bağlanabilir. Streaming (SSE) var ama cevap hazır olunca parça parça gönderilir (gerçek token akışı Faz 8).
 - **Yedek plan:** Copilot custom-OAI çalışmazsa ajan Ollama-uyumlu `/api/chat` + `/api/tags` da sunar; VS Code'un Ollama sağlayıcısı ajanın portuna yönlendirilir.
 - **MCP client:** resmi `mcp` SDK (`ClientSession` + `stdio_client`). Ajan MCP sunucusunu subprocess olarak başlatır. `MCP_SERVERS` config'i ile başka MCP sunucuları da eklenebilir.
 - **MCP server:** `mcp` SDK `FastMCP`, transport stdio.
-- **LLM:** Ollama `/api/chat`, `tools` parametresi ile native tool-calling. Varsayılan `qwen3:4b`; isabet düşükse `qwen3:8b`.
+- **LLM:** Ollama `/api/chat`, `tools` parametresi ile native tool-calling. Varsayılan `qwen3:4b` (20/20 isabet, ~11 sn/soru); hızlı alternatif `qwen2.5:3b` (17/20, 0.5 sn).
+- **think parametresi:** gönderilmiyor. qwen3:4b'de `think:false` düşünmeyi kapatmıyor, content'e karıştırıyor; verilmeyince Ollama ayrı `thinking` alanına koyar. `strip_think` yine de `</think>` kalıntısını temizler.
 - **Test:** `pytest`, `pytest-asyncio`, `respx`. Gerçek Ollama gerektirenler `@pytest.mark.integration`.
 - **Loglama:** MCP server stdio kullandığı için **stdout'a print yok** → `logging` stderr'e. Ajan normal loglayabilir.
 
@@ -188,10 +192,13 @@ Tüm adımlar idempotent. Bootstrap başarısız olsa bile ajan ayağa kalkar; h
 
 ## Kurallar / Dikkat
 
-- Python 3.14 çok yeni; paket uyumsuzluğunda `uv python install 3.12` ve `requires-python = ">=3.12"`.
+- uv otomatik Python 3.12 kullanıyor; sistemdeki 3.14'e bağımlı değiliz.
+- Ajan çalışırken `uv sync` / `uv run` `local-agent.exe`'yi kilitler → önce ajanı durdur (port 8000'i tutan PID).
+- Uzun dosyaları bash heredoc ile yazma (EOF hatası); Write tool'u kullan.
+- Windows terminalinde Türkçe çıktı için `PYTHONIOENCODING=utf-8`.
 - MCP server'da `print()` yasak → `logging` (stderr).
 - Ollama timeout yüksek (ilk yükleme 10–30 sn): varsayılan 120 sn.
-- qwen3 `<think>…</think>` üretebilir; `ollama_client` `think: false` gönderir ve kalan bloğu temizler.
+- qwen3 düşünce üretir; `think` gönderilmez, Ollama ayrı alana koyar, `strip_think` kalıntıyı temizler.
 - Ajan döngüsü `MAX_TOOL_ROUNDS` (varsayılan 5) ile sınırlı; sonsuz tool döngüsü engellenir.
 - MCP tool'ları Ollama'yı çağırmaz. Beyin = Ollama, eller = ajan + MCP server.
 - Copilot custom-OAI sağlayıcısı için Copilot eklentisi + GitHub girişi gerekir (ücretsiz plan yeterli).

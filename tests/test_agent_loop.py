@@ -17,7 +17,10 @@ class FakeRegistry(MCPToolRegistry):
     def __init__(self):
         super().__init__(specs=[])
         self.tools = [
-            {"type": "function", "function": {"name": "sistem_bilgisi", "description": "saat", "parameters": {}}}
+            {
+                "type": "function",
+                "function": {"name": "sistem_bilgisi", "description": "saat", "parameters": {}},
+            }
         ]
         self.calls: list[tuple[str, dict]] = []
 
@@ -65,7 +68,11 @@ async def test_tek_tool_turu(setup):
     assert [t.name for t in r.traces] == ["sistem_bilgisi"]
     # ikinci istekte tool sonucu role:tool olarak gitmiş olmalı
     second = json.loads(route.calls[1].request.content)
-    assert second["messages"][-1] == {"role": "tool", "tool_name": "sistem_bilgisi", "content": "SONUC(sistem_bilgisi)"}
+    assert second["messages"][-1] == {
+        "role": "tool",
+        "tool_name": "sistem_bilgisi",
+        "content": "SONUC(sistem_bilgisi)",
+    }
 
 
 @respx.mock

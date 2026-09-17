@@ -17,10 +17,10 @@ def _safe_path(rel: str) -> Path:
 
 
 def dosya_ara(desen: str, klasor: str = ".") -> str:
-    """Proje klasöründe dosya adına göre arama yapar (glob deseni, ör. "*.py", "test_*", "*.md").
+    """Proje klasöründe dosya adına göre arama yapar (glob deseni: "*.py", "test_*", "*.md").
 
-    NE ZAMAN KULLAN: Kullanıcı "hangi dosyalar var", "py dosyalarını listele", "config dosyası nerede",
-    "X isimli dosyayı bul" gibi dosya/klasör listesi veya konumu sorduğunda.
+    NE ZAMAN KULLAN: Kullanıcı "hangi dosyalar var", "py dosyalarını listele",
+    "config dosyası nerede", "X isimli dosyayı bul" gibi dosya listesi/konumu sorduğunda.
     NE ZAMAN KULLANMA: Dosya içeriği istendiğinde (onun için dosya_oku), genel sorularda.
     """
     root = _safe_path(klasor)

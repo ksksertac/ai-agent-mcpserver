@@ -50,7 +50,10 @@ async def lifespan(app: FastAPI):
     state.loop = AgentLoop(state.ollama, state.registry)
     log.info(
         "Ajan hazır → http://%s:%d  (model: %s, %d tool). VS Code'da '%s' modelini seçin.",
-        settings.agent_host, settings.agent_port, settings.ollama_model, len(state.registry.tools),
+        settings.agent_host,
+        settings.agent_port,
+        settings.ollama_model,
+        len(state.registry.tools),
         settings.agent_model_name,
     )
     try:
@@ -65,11 +68,14 @@ app = FastAPI(title="Local Agent", lifespan=lifespan)
 
 # ---------------------------------------------------------------- OpenAI uyumlu
 
+
 @app.get("/v1/models")
 async def v1_models():
     return {
         "object": "list",
-        "data": [{"id": settings.agent_model_name, "object": "model", "created": 0, "owned_by": "local"}],
+        "data": [
+            {"id": settings.agent_model_name, "object": "model", "created": 0, "owned_by": "local"}
+        ],
     }
 
 
@@ -80,7 +86,9 @@ async def v1_chat(request: Request):
     result = await state.loop.run(messages)
     content = _decorate(result)
     if body.get("stream"):
-        return StreamingResponse(_sse_openai(content, body.get("model")), media_type="text/event-stream")
+        return StreamingResponse(
+            _sse_openai(content, body.get("model")), media_type="text/event-stream"
+        )
     return _openai_response(content, body.get("model"))
 
 
@@ -90,15 +98,31 @@ def _openai_response(content: str, model: str | None) -> dict[str, Any]:
         "object": "chat.completion",
         "created": int(time.time()),
         "model": model or settings.agent_model_name,
-        "choices": [{"index": 0, "message": {"role": "assistant", "content": content}, "finish_reason": "stop"}],
+        "choices": [
+            {
+                "index": 0,
+                "message": {"role": "assistant", "content": content},
+                "finish_reason": "stop",
+            }
+        ],
         "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
     }
 
 
 async def _sse_openai(content: str, model: str | None):
     cid = f"chatcmpl-{uuid.uuid4().hex[:12]}"
-    base = {"id": cid, "object": "chat.completion.chunk", "created": int(time.time()), "model": model or settings.agent_model_name}
-    first = {**base, "choices": [{"index": 0, "delta": {"role": "assistant", "content": ""}, "finish_reason": None}]}
+    base = {
+        "id": cid,
+        "object": "chat.completion.chunk",
+        "created": int(time.time()),
+        "model": model or settings.agent_model_name,
+    }
+    first = {
+        **base,
+        "choices": [
+            {"index": 0, "delta": {"role": "assistant", "content": ""}, "finish_reason": None}
+        ],
+    }
     yield f"data: {json.dumps(first)}\n\n"
     # cevabı parça parça gönder (istemci akış gibi görsün)
     for chunk in _chunks(content, 80):
@@ -111,6 +135,7 @@ async def _sse_openai(content: str, model: str | None):
 
 # ---------------------------------------------------------------- Ollama uyumlu (yedek)
 
+
 @app.get("/api/version")
 async def api_version():
     return {"version": "0.1.0-local-agent"}
@@ -118,7 +143,16 @@ async def api_version():
 
 @app.get("/api/tags")
 async def api_tags():
-    return {"models": [{"name": settings.agent_model_name, "model": settings.agent_model_name, "size": 0, "details": {}}]}
+    return {
+        "models": [
+            {
+                "name": settings.agent_model_name,
+                "model": settings.agent_model_name,
+                "size": 0,
+                "details": {},
+            }
+        ]
+    }
 
 
 @app.post("/api/show")
@@ -133,17 +167,33 @@ async def api_chat(request: Request):
     result = await state.loop.run(messages)
     content = _decorate(result)
     if body.get("stream", True):
-        return StreamingResponse(_ndjson_ollama(content, body.get("model")), media_type="application/x-ndjson")
-    return {"model": body.get("model"), "message": {"role": "assistant", "content": content}, "done": True}
+        return StreamingResponse(
+            _ndjson_ollama(content, body.get("model")), media_type="application/x-ndjson"
+        )
+    return {
+        "model": body.get("model"),
+        "message": {"role": "assistant", "content": content},
+        "done": True,
+    }
 
 
 async def _ndjson_ollama(content: str, model: str | None):
     for chunk in _chunks(content, 80):
-        yield json.dumps({"model": model, "message": {"role": "assistant", "content": chunk}, "done": False}, ensure_ascii=False) + "\n"
-    yield json.dumps({"model": model, "message": {"role": "assistant", "content": ""}, "done": True}) + "\n"
+        yield (
+            json.dumps(
+                {"model": model, "message": {"role": "assistant", "content": chunk}, "done": False},
+                ensure_ascii=False,
+            )
+            + "\n"
+        )
+    yield (
+        json.dumps({"model": model, "message": {"role": "assistant", "content": ""}, "done": True})
+        + "\n"
+    )
 
 
 # ---------------------------------------------------------------- ortak
+
 
 @app.get("/health")
 async def health():
@@ -160,7 +210,9 @@ async def health():
 @app.exception_handler(Exception)
 async def on_error(_: Request, exc: Exception):
     log.exception("istek hatası")
-    return JSONResponse(status_code=500, content={"error": {"message": str(exc), "type": "server_error"}})
+    return JSONResponse(
+        status_code=500, content={"error": {"message": str(exc), "type": "server_error"}}
+    )
 
 
 def _normalize_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -172,7 +224,11 @@ def _normalize_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         content = m.get("content", "")
         if isinstance(content, list):
-            content = "\n".join(p.get("text", "") for p in content if isinstance(p, dict) and p.get("type") == "text")
+            content = "\n".join(
+                p.get("text", "")
+                for p in content
+                if isinstance(p, dict) and p.get("type") == "text"
+            )
         out.append({"role": role, "content": content or ""})
     return out
 
@@ -193,9 +249,12 @@ def _chunks(text: str, n: int):
 
 # ---------------------------------------------------------------- CLI
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Local Agent (Ollama + MCP)")
-    parser.add_argument("--no-bootstrap", action="store_true", help="Ollama kurulum/başlatma adımlarını atla")
+    parser.add_argument(
+        "--no-bootstrap", action="store_true", help="Ollama kurulum/başlatma adımlarını atla"
+    )
     parser.add_argument("--check", action="store_true", help="Sadece bootstrap'ı çalıştır ve çık")
     parser.add_argument("--port", type=int, default=settings.agent_port)
     args = parser.parse_args()

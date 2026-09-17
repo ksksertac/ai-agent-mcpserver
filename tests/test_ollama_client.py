@@ -25,7 +25,9 @@ def test_strip_think():
 @respx.mock
 async def test_chat_duz_cevap(client):
     respx.post(f"{HOST}/api/chat").mock(
-        return_value=httpx.Response(200, json={"message": {"role": "assistant", "content": "<think>x</think>Merhaba!"}})
+        return_value=httpx.Response(
+            200, json={"message": {"role": "assistant", "content": "<think>x</think>Merhaba!"}}
+        )
     )
     r = await client.chat([{"role": "user", "content": "selam"}])
     assert r.content == "Merhaba!" and not r.wants_tools
@@ -45,7 +47,12 @@ async def test_chat_tool_call(client):
             },
         )
     )
-    tools = [{"type": "function", "function": {"name": "sistem_bilgisi", "description": "x", "parameters": {}}}]
+    tools = [
+        {
+            "type": "function",
+            "function": {"name": "sistem_bilgisi", "description": "x", "parameters": {}},
+        }
+    ]
     r = await client.chat([{"role": "user", "content": "saat kaç"}], tools=tools)
     assert r.wants_tools and r.tool_calls[0].name == "sistem_bilgisi"
     body = json.loads(route.calls[0].request.content)
@@ -60,7 +67,9 @@ async def test_tool_call_string_arguments(client):
             json={
                 "message": {
                     "content": "",
-                    "tool_calls": [{"function": {"name": "dosya_ara", "arguments": '{"desen": "*.py"}'}}],
+                    "tool_calls": [
+                        {"function": {"name": "dosya_ara", "arguments": '{"desen": "*.py"}'}}
+                    ],
                 }
             },
         )
@@ -71,7 +80,9 @@ async def test_tool_call_string_arguments(client):
 
 @respx.mock
 async def test_list_models_ve_has_model(client):
-    respx.get(f"{HOST}/api/tags").mock(return_value=httpx.Response(200, json={"models": [{"name": "qwen3:4b"}]}))
+    respx.get(f"{HOST}/api/tags").mock(
+        return_value=httpx.Response(200, json={"models": [{"name": "qwen3:4b"}]})
+    )
     assert await client.list_models() == ["qwen3:4b"]
     assert await client.has_model("qwen3:4b")
     assert not await client.has_model("llama3:8b")
@@ -86,7 +97,9 @@ async def test_ollama_kapali(client):
 
 @respx.mock
 async def test_model_yok(client):
-    respx.post(f"{HOST}/api/chat").mock(return_value=httpx.Response(404, text='{"error":"model not found"}'))
+    respx.post(f"{HOST}/api/chat").mock(
+        return_value=httpx.Response(404, text='{"error":"model not found"}')
+    )
     with pytest.raises(OllamaError, match="ollama pull"):
         await client.chat([])
 

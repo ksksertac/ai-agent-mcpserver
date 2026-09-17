@@ -8,7 +8,7 @@ import psutil
 
 
 def sistem_bilgisi() -> str:
-    """Bu bilgisayarın anlık durumunu verir: saat, tarih, işletim sistemi, CPU, RAM ve disk kullanımı.
+    """Bu bilgisayarın anlık durumu: saat, tarih, işletim sistemi, CPU, RAM ve disk kullanımı.
 
     NE ZAMAN KULLAN: Kullanıcı "saat kaç", "bugün günlerden ne", "tarih ne", "RAM ne kadar dolu",
     "disk ne kadar boş", "CPU yüzde kaç", "hangi işletim sistemi" gibi bu makineyle ilgili
@@ -27,6 +27,7 @@ def sistem_bilgisi() -> str:
             f"Makine adı: {platform.node()}",
             f"CPU kullanımı: %{psutil.cpu_percent(interval=0.2)} ({psutil.cpu_count()} çekirdek)",
             f"RAM: {vm.used / gb:.1f} GB / {vm.total / gb:.1f} GB (%{vm.percent} dolu)",
-            f"Disk: {du.used / gb:.1f} GB / {du.total / gb:.1f} GB kullanımda, {du.free / gb:.1f} GB boş",
+            f"Disk: {du.used / gb:.1f} GB / {du.total / gb:.1f} GB kullanımda, "
+            f"{du.free / gb:.1f} GB boş",
         ]
     )

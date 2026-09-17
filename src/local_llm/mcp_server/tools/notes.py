@@ -13,7 +13,9 @@ def _load() -> list[dict]:
 
 
 def _save(notes: list[dict]) -> None:
-    settings.notes_file.write_text(json.dumps(notes, ensure_ascii=False, indent=2), encoding="utf-8")
+    settings.notes_file.write_text(
+        json.dumps(notes, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def not_kaydet(metin: str) -> str:
@@ -23,7 +25,13 @@ def not_kaydet(metin: str) -> str:
     NE ZAMAN KULLANMA: Kullanıcı sadece bilgi soruyorsa; kaydetme isteği yoksa.
     """
     notes = _load()
-    notes.append({"id": len(notes) + 1, "zaman": datetime.now().isoformat(timespec="seconds"), "metin": metin})
+    notes.append(
+        {
+            "id": len(notes) + 1,
+            "zaman": datetime.now().isoformat(timespec="seconds"),
+            "metin": metin,
+        }
+    )
     _save(notes)
     return f"Not #{len(notes)} kaydedildi: {metin}"
 

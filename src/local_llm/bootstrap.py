@@ -51,6 +51,7 @@ async def ensure_ready(ollama: OllamaClient) -> dict[str, Any]:
 
 # ---------------------------------------------------------------- 1. kurulum
 
+
 def ollama_binary() -> str | None:
     found = shutil.which("ollama")
     if found:
@@ -69,20 +70,33 @@ def _ensure_ollama_installed() -> str:
     if platform.system() != "Windows":
         raise RuntimeError("Ollama kurulu değil. https://ollama.com/download adresinden kurun.")
     if not shutil.which("winget"):
-        raise RuntimeError("Ollama ve winget yok. https://ollama.com/download adresinden elle kurun.")
+        raise RuntimeError(
+            "Ollama ve winget yok. https://ollama.com/download adresinden elle kurun."
+        )
     log.info("Ollama kurulu değil, winget ile kuruluyor (birkaç dakika sürebilir)...")
     subprocess.run(
-        ["winget", "install", "-e", "--id", "Ollama.Ollama", "--accept-package-agreements", "--accept-source-agreements"],
+        [
+            "winget",
+            "install",
+            "-e",
+            "--id",
+            "Ollama.Ollama",
+            "--accept-package-agreements",
+            "--accept-source-agreements",
+        ],
         check=True,
         stdout=sys.stderr,
         stderr=sys.stderr,
     )
     if not ollama_binary():
-        raise RuntimeError("winget kurulumu bitti ama ollama bulunamadı; terminali yeniden açıp tekrar deneyin.")
+        raise RuntimeError(
+            "winget kurulumu bitti ama ollama bulunamadı; terminali yeniden açıp tekrar deneyin."
+        )
     return "winget ile kuruldu"
 
 
 # ---------------------------------------------------------------- 2. servis
+
 
 async def _ensure_ollama_running(ollama: OllamaClient) -> str:
     if await ollama.is_alive():
@@ -112,6 +126,7 @@ async def _ensure_ollama_running(ollama: OllamaClient) -> str:
 
 # ---------------------------------------------------------------- 3. model
 
+
 async def _ensure_model(ollama: OllamaClient) -> str:
     if await ollama.has_model():
         return f"{ollama.model} indirilmiş"
@@ -120,6 +135,7 @@ async def _ensure_model(ollama: OllamaClient) -> str:
 
 
 # ---------------------------------------------------------------- 4. warm-up
+
 
 async def _warm_up(ollama: OllamaClient) -> str:
     t0 = time.perf_counter()
