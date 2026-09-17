@@ -7,7 +7,7 @@ Her faz sonunda commit at ve `origin main`'e push et (repo: https://github.com/k
 - [x] Ortam tespiti (Python 3.14, uv, Ollama 0.34, qwen3:4b, RTX 4060 8GB, VS Code 1.138)
 - [x] Mimari ve plan → `CLAUDE.md`
 - [x] Task listesi → `tasks.md`
-- [ ] `git init`, `.gitignore`, ilk commit, `origin` = github.com/ksksertac/mcpserver, push
+- [x] `git init`, `.gitignore`, ilk commit, `origin` = github.com/ksksertac/mcpserver, push
 
 ## Faz 1 — Proje İskeleti
 - [ ] `uv init` ile `pyproject.toml` oluştur (`name = local-llm-mcp`, `requires-python >= 3.12`)
