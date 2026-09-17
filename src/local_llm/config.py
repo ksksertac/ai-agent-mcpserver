@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     ollama_host: str = "http://localhost:11434"
     ollama_model: str = "qwen3:4b"
     ollama_timeout: float = 120.0
+    ollama_think: bool | None = None  # None: Ollama varsayılanı (qwen3 düşünür ama ayrı alanda)
 
     # Ajan
     agent_host: str = "127.0.0.1"

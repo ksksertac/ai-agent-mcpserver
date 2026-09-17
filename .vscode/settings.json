@@ -1,0 +1,13 @@
+{
+  "github.copilot.chat.customOAIModels": {
+    "local-agent": {
+      "name": "Local Agent (Ollama + MCP)",
+      "url": "http://127.0.0.1:8000/v1",
+      "toolCalling": false,
+      "vision": false,
+      "thinking": false,
+      "maxInputTokens": 32000,
+      "maxOutputTokens": 4096
+    }
+  }
+}
