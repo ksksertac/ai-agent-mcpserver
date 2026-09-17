@@ -31,7 +31,8 @@ Her faz sonunda commit at ve `origin main`'e push et (repo: https://github.com/k
 - [x] Her tool docstring'i "NE ZAMAN KULLAN / NE ZAMAN KULLANMA" formatında (Ollama kararını buradan veriyor)
 - [x] `tests/test_mcp_server.py` — tool fonksiyonları doğrudan test
 - [x] MCP protokolü doğrulandı: test içinde stdio_client ile gerçek subprocess (Inspector yerine)
-- [ ] **AÇIK KARAR:** tool'ların asıl konusu belirlenince demo tool'lar değişecek
+- [x] Sözde (mock) iş tool'ları eklendi: `siparisleri_getir`, `musteri_faturasi`, `dokuman_ara`, `son_commit`, `docker_listele`, `takvim_bugun` — sabit cevap dönerler (`tools/mock.py`)
+- [ ] **AÇIK KARAR:** mock tool'lar gerçek entegrasyonla (DB/API/Docker) değiştirilecek; docstring ve imza aynı kalır, sadece gövde değişir
 
 ## Faz 3 — Ollama İstemcisi
 - [x] `ollama_client.py`: `async chat(messages, tools=None, model=None) -> OllamaResponse` (`POST /api/chat`, `stream: false`, `think: false`)
@@ -94,7 +95,7 @@ Hedef: `.\setup.ps1` veya `uv run local-agent` ile **hiçbir şey elle kurmadan*
 
 ## Faz 8 — Sonraki Adımlar (opsiyonel)
 - [ ] Gerçek token streaming: Ollama `stream: true` → ajan SSE'yi anlık iletsin (şu an cevap bitince gönderiliyor)
-- [ ] Tool'ların asıl konusu belirlenince demo tool'ları değiştir (**AÇIK KARAR**)
+- [ ] Mock tool'ları gerçek entegrasyonla değiştir (**AÇIK KARAR**)
 - [ ] qwen3 düşünme süresini kısaltma: Ollama güncellemesiyle `think:false` düzelirse aç; ya da `qwen2.5:3b`/`qwen3:8b` karşılaştır
 - [ ] Ajanı Windows başlangıcında otomatik çalıştır (Görev Zamanlayıcı / tray)
 - [ ] Uzun geçmişte mesaj kırpma (token sayısına göre)
@@ -108,7 +109,9 @@ Hedef: `.\setup.ps1` veya `uv run local-agent` ile **hiçbir şey elle kurmadan*
 - 2026-09-17: Ajan OpenAI-uyumlu API sunar (`/v1/chat/completions`); VS Code `customOAIModels` ile bağlanır. Yedek: Ollama-uyumlu API.
 - 2026-09-17: MCP tool'ları Ollama'yı çağırmaz (döngü olur). Tool'lar gerçek yetenek.
 - 2026-09-17: mcp SDK 2.2.0 → `FastMCP` yerine `MCPServer` (`mcp.server.mcpserver`), `t.input_schema` (snake_case). uv Python 3.12.14 seçti.
-- 2026-09-17: Tool seçim testi: qwen3:4b 20/20 (~11 sn/soru), qwen2.5:3b 17/20 (0.5 sn/soru). Varsayılan qwen3:4b.
+- 2026-09-17: Tool seçim testi (5 tool): qwen3:4b 20/20 (~11 sn/soru), qwen2.5:3b 17/20 (0.5 sn/soru). Varsayılan qwen3:4b.
+- 2026-09-17: 11 tool ile: 26/27 (%96), temperature=0 ile tutarlılık arttı. Kaçırmalar docstring'e "HER ZAMAN bu aracı çağır" + örnek soru eklenince düzeldi.
+- 2026-09-17: Terminoloji: "MCP sunucusuna tool ekledim/tanımladım" (tool = docstring'li Python fonksiyonu). MCP primitives: tools / resources / prompts.
 - 2026-09-17: qwen3:4b'de `think:false` düşünmeyi kapatmıyor, düşünceyi content'e karıştırıyor → `think` gönderilmiyor, Ollama ayrı `thinking` alanına koyuyor, content temiz. `/no_think` de etkisiz.
 - 2026-09-17: Heredoc ile uzun dosya yazarken bash EOF hatası → dosyalar Write tool'u ile yazılıyor.
 - 2026-09-17: Ajan çalışırken `uv sync/run` `local-agent.exe`'yi kilitler → önce ajanı durdur.

@@ -6,10 +6,30 @@ from mcp.client.stdio import stdio_client
 
 from local_llm.mcp_server.server import mcp
 from local_llm.mcp_server.tools.files import dosya_ara, dosya_oku
+from local_llm.mcp_server.tools.mock import (
+    docker_listele,
+    dokuman_ara,
+    musteri_faturasi,
+    siparisleri_getir,
+    son_commit,
+    takvim_bugun,
+)
 from local_llm.mcp_server.tools.notes import not_kaydet, notlari_getir
 from local_llm.mcp_server.tools.system import sistem_bilgisi
 
-EXPECTED_TOOLS = {"sistem_bilgisi", "dosya_ara", "dosya_oku", "not_kaydet", "notlari_getir"}
+EXPECTED_TOOLS = {
+    "sistem_bilgisi",
+    "dosya_ara",
+    "dosya_oku",
+    "not_kaydet",
+    "notlari_getir",
+    "siparisleri_getir",
+    "musteri_faturasi",
+    "dokuman_ara",
+    "son_commit",
+    "docker_listele",
+    "takvim_bugun",
+}
 
 
 def test_sistem_bilgisi_icerik():
@@ -45,8 +65,34 @@ def test_notlar_bos_sonra_kayit():
     assert "süt al" in notlari_getir()
 
 
+def test_mock_toollar_sabit_cevap():
+    assert "Toplam ciro" in siparisleri_getir()
+    assert "ÖDENMEDİ" in musteri_faturasi("Ayşe Yılmaz")
+    assert "bulunamadı" in musteri_faturasi("yok biri")
+    assert "2 belgede" in dokuman_ara("fesih")
+    assert "geçmiyor" in dokuman_ara("uzay")
+    assert "a1b2c3d" in son_commit()
+    assert "UYARI" in docker_listele()
+    assert "4 etkinlik" in takvim_bugun()
+
+
+ALL_TOOLS = (
+    sistem_bilgisi,
+    dosya_ara,
+    dosya_oku,
+    not_kaydet,
+    notlari_getir,
+    siparisleri_getir,
+    musteri_faturasi,
+    dokuman_ara,
+    son_commit,
+    docker_listele,
+    takvim_bugun,
+)
+
+
 def test_docstringler_ne_zaman_kullan_formatinda():
-    for fn in (sistem_bilgisi, dosya_ara, dosya_oku, not_kaydet, notlari_getir):
+    for fn in ALL_TOOLS:
         assert "NE ZAMAN KULLAN:" in fn.__doc__ and "NE ZAMAN KULLANMA:" in fn.__doc__
 
 

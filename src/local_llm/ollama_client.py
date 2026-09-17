@@ -140,8 +140,7 @@ class OllamaClient:
             payload["think"] = settings.ollama_think
         if tools:
             payload["tools"] = tools
-        if options:
-            payload["options"] = options
+        payload["options"] = {"temperature": settings.ollama_temperature, **(options or {})}
 
         r = await self._request("POST", "/api/chat", json=payload)
         msg = r.json().get("message", {})

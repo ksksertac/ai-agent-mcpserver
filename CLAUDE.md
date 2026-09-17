@@ -98,7 +98,8 @@ mcpserver/
 │       └── tools/             # gerçek yetenekler (Ollama'yı ÇAĞIRMAZ)
 │           ├── system.py      # sistem_bilgisi
 │           ├── files.py       # dosya_ara / dosya_oku
-│           └── notes.py       # not_kaydet / notlari_getir  (demo; asıl konu belirlenince değişir)
+│           ├── notes.py       # not_kaydet / notlari_getir
+│           └── mock.py        # sözde iş tool'ları (sipariş, fatura, doküman, git, docker, takvim)
 └── tests/
     ├── test_ollama_client.py  # respx mock
     ├── test_mcp_server.py     # tool'lar doğrudan
@@ -119,7 +120,7 @@ mcpserver/
 
 ## MCP Sunucunun Sunacakları
 
-**Tools** (demo set — asıl konu belirlenince değişecek)
+**Gerçek tools**
 | Tool | Girdi | Docstring'de "ne zaman kullan" |
 |---|---|---|
 | `sistem_bilgisi` | – | Saat, tarih, OS, RAM/CPU/disk sorulduğunda |
@@ -128,7 +129,19 @@ mcpserver/
 | `not_kaydet` | `metin: str` | "Not al / hatırlat / kaydet" dendiğinde |
 | `notlari_getir` | – | Kaydedilen notlar sorulduğunda |
 
-> **Açık karar:** Tool'ların asıl konusu (sipariş/DB, dosya, sistem, özel iş mantığı…) belirlenecek.
+**Sözde (mock) tools** — `tools/mock.py`, sabit cevap dönerler; gerçek entegrasyon yazılınca sadece gövde değişir
+| Tool | Girdi | Ne zaman |
+|---|---|---|
+| `siparisleri_getir` | `tarih="bugün"` | sipariş, ciro, satış, kargoda |
+| `musteri_faturasi` | `musteri` | "X'in faturası ödendi mi" |
+| `dokuman_ara` | `kelime` | "sözleşmelerde X geçiyor mu" |
+| `son_commit` | – | "son commit'te ne değişti" |
+| `docker_listele` | – | "docker'da ne çalışıyor" |
+| `takvim_bugun` | – | "bugün toplantım var mı" |
+
+**Docstring yazma kuralı (ölçüldü):** "NE ZAMAN KULLAN: … geçiyorsa HER ZAMAN bu aracı çağır. Örnek: …" + "NE ZAMAN KULLANMA: … (diğer_tool)". Bu format + `temperature=0` ile qwen3:4b 11 tool'da %96 isabet.
+
+> **Açık karar:** Mock tool'lar hangi gerçek sistemlere bağlanacak (DB/API/Docker/takvim)?
 
 ## Komutlar
 

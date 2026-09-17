@@ -17,11 +17,13 @@ def _safe_path(rel: str) -> Path:
 
 
 def dosya_ara(desen: str, klasor: str = ".") -> str:
-    """Proje klasöründe dosya adına göre arama yapar (glob deseni: "*.py", "test_*", "*.md").
+    """Proje klasöründeki dosyaları LİSTELER (glob deseni: "*.py", "test_*", "*.md").
+    Proje dosyalarının listesi SADECE bu araçtan alınabilir.
 
-    NE ZAMAN KULLAN: Kullanıcı "hangi dosyalar var", "py dosyalarını listele",
-    "config dosyası nerede", "X isimli dosyayı bul" gibi dosya listesi/konumu sorduğunda.
-    NE ZAMAN KULLANMA: Dosya içeriği istendiğinde (onun için dosya_oku), genel sorularda.
+    NE ZAMAN KULLAN: Soruda "hangi dosyalar", "dosyaları listele", "py/md dosyaları",
+    "X dosyası nerede", "dosyayı bul" geçiyorsa HER ZAMAN bu aracı çağır.
+    Örnek: "projede hangi py dosyaları var?", "README nerede?".
+    NE ZAMAN KULLANMA: Belirli bir dosyanın içeriği istendiğinde (dosya_oku).
     """
     root = _safe_path(klasor)
     if not root.is_dir():
@@ -40,11 +42,12 @@ def dosya_ara(desen: str, klasor: str = ".") -> str:
 
 
 def dosya_oku(yol: str) -> str:
-    """Proje klasöründeki bir dosyanın içeriğini okur (ilk 20 KB).
+    """Adı verilen bir dosyanın İÇERİĞİNİ okur ve döner (ilk 20 KB).
 
-    NE ZAMAN KULLAN: Kullanıcı belirli bir dosyanın içeriğini, ne yazdığını, kaç satır olduğunu
-    sorduğunda; "README'yi oku", "config.py'de ne var" gibi.
-    NE ZAMAN KULLANMA: Dosya adı bilinmiyorsa (önce dosya_ara), genel sorularda.
+    NE ZAMAN KULLAN: Kullanıcı dosya adını söyleyip "içinde ne yazıyor", "içeriği ne", "oku",
+    "ne var" dediğinde. Örnek: "pyproject.toml içinde ne yazıyor?", "README'yi oku".
+    Dosya adı sorudaysa dosya_ara DEĞİL bunu kullan.
+    NE ZAMAN KULLANMA: Dosya adı bilinmiyor, sadece hangi dosyaların olduğu soruluyorsa (dosya_ara).
     """
     p = _safe_path(yol)
     if not p.is_file():

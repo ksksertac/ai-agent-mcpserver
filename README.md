@@ -28,6 +28,8 @@ Sonra VS Code'da: **Copilot Chat → model seçici → "Local Agent (Ollama + MC
 | `saat kaç?` | Ollama `sistem_bilgisi` tool'unu ister → ajan MCP'den alır → "Şu an saat 15:38" |
 | `projede hangi md dosyaları var?` | `dosya_ara` → "CLAUDE.md, README.md, tasks.md" |
 | `not al: yarın süt al` | `not_kaydet` → `.notes.json`'a yazar |
+| `bugünkü siparişler ne kadar tuttu?` | `siparisleri_getir` (mock) → 3 sipariş, toplam 11.530,50 TL |
+| `Ayşe Yılmaz'ın faturası ödendi mi?` | `musteri_faturasi` (mock) → "ÖDENMEDİ" |
 | `2+2 kaç?` | Tool çağırmaz, direkt "4" |
 
 Cevabın altında `🔧 Kullanılan araçlar: ...` satırı hangi tool'ların çağrıldığını gösterir.
@@ -37,7 +39,7 @@ Cevabın altında `🔧 Kullanılan araçlar: ...` satırı hangi tool'ların ç
 | Parça | Dosya | Görev |
 |---|---|---|
 | **AI Agent** | `src/local_llm/agent/` | OpenAI-uyumlu HTTP API (`:8000/v1`), Ollama ↔ MCP döngüsü, MCP client |
-| **MCP Server** | `src/local_llm/mcp_server/` | Tool'lar: `sistem_bilgisi`, `dosya_ara`, `dosya_oku`, `not_kaydet`, `notlari_getir` |
+| **MCP Server** | `src/local_llm/mcp_server/` | Gerçek tool'lar: `sistem_bilgisi`, `dosya_ara`, `dosya_oku`, `not_kaydet`, `notlari_getir`. Sözde (sabit cevaplı) iş tool'ları: `siparisleri_getir`, `musteri_faturasi`, `dokuman_ara`, `son_commit`, `docker_listele`, `takvim_bugun` |
 | **Bootstrap** | `src/local_llm/bootstrap.py` | Ollama kur/başlat, model çek, warm-up, VS Code ayarı |
 | **Ollama istemcisi** | `src/local_llm/ollama_client.py` | `/api/chat` (tool-calling), `/api/tags`, `/api/pull` |
 
@@ -62,7 +64,7 @@ Yeni bir yetenek eklemek = `mcp_server/tools/` altına böyle bir fonksiyon yaz�
 
 | Model | Tool seçim isabeti | Hız |
 |---|---|---|
-| `qwen3:4b` (varsayılan) | **20/20** | ~11 sn/soru (model içten "düşünüyor") |
+| `qwen3:4b` (varsayılan) | **20/20** (5 tool) · **26/27** (11 tool) | ~11–14 sn/soru (model içten "düşünüyor") |
 | `qwen2.5:3b` | 17/20 | **0.5 sn/soru** |
 
 Hız istersen: `OLLAMA_MODEL=qwen2.5:3b uv run local-agent` (ya da `.env` dosyasına yaz).
