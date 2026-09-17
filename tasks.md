@@ -1,7 +1,7 @@
 # Tasks
 
 Durum işaretleri: `[ ]` yapılmadı · `[~]` devam ediyor · `[x]` bitti
-Her faz sonunda commit at ve `origin main`'e push et (repo: https://github.com/ksksertac/mcpserver).
+Her faz sonunda commit at ve `origin main`'e push et (repo: https://github.com/ksksertac/ai-agent-mcpserver).
 
 İki parça yazıyoruz: **AI Agent** (beyin+eller: Ollama'ya sorar, MCP'ye gider) ve **MCP Server** (sadece tool'lar). Detay: [CLAUDE.md](CLAUDE.md).
 
@@ -9,7 +9,7 @@ Her faz sonunda commit at ve `origin main`'e push et (repo: https://github.com/k
 - [x] Ortam tespiti (Python 3.14, uv, Ollama 0.34, qwen3:4b, RTX 4060 8GB, VS Code 1.138)
 - [x] Mimari ve plan → `CLAUDE.md`
 - [x] Task listesi → `tasks.md`
-- [x] `git init`, `.gitignore`, ilk commit, `origin` = github.com/ksksertac/mcpserver, push
+- [x] `git init`, `.gitignore`, ilk commit, `origin` = github.com/ksksertac/ai-agent-mcpserver, push
 - [x] Mimari kararı: bizim ajan MCP client olacak, VS Code sadece arayüz (2026-09-17)
 
 ## Faz 1 — Proje İskeleti
@@ -94,7 +94,7 @@ Hedef: `.\setup.ps1` veya `uv run local-agent` ile **hiçbir şey elle kurmadan*
 
 ## Notlar / Kararlar
 - 2026-09-17: Model `qwen3:4b` (tool-calling + Türkçe + VRAM). İsabet düşükse `qwen3:8b`.
-- 2026-09-17: Uzak repo: https://github.com/ksksertac/mcpserver
+- 2026-09-17: Uzak repo: https://github.com/ksksertac/ai-agent-mcpserver
 - 2026-09-17: Tek komutla otomatik kurulum (bootstrap) istendi → Faz 5
 - 2026-09-17: **Mimari:** bizim ajan = MCP client. Akış: VS Code → Ajan → Ollama (karar) → Ajan → MCP Server (tool) → Ajan → Ollama (son cevap) → VS Code. LLM sadece karar verir, MCP'ye giden ajandır (LLM'in ağ erişimi yok).
 - 2026-09-17: Ajan OpenAI-uyumlu API sunar (`/v1/chat/completions`); VS Code `customOAIModels` ile bağlanır. Yedek: Ollama-uyumlu API.

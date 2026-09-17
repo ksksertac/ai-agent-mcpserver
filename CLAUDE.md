@@ -183,7 +183,7 @@ Tüm adımlar idempotent. Bootstrap başarısız olsa bile ajan ayağa kalkar; h
 
 ## Git / Repo
 
-- Uzak repo: **https://github.com/ksksertac/mcpserver** (`origin`, branch `main`)
+- Uzak repo: **https://github.com/ksksertac/ai-agent-mcpserver** (`origin`, branch `main`)
 - Her faz bitiminde commit + push. Commit mesajı faz adıyla başlasın: `Faz 2: Ollama istemcisi`.
 
 ## Kurallar / Dikkat
